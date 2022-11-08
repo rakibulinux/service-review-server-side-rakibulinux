@@ -54,11 +54,41 @@ async function run() {
     //Get a single service
     app.get("/services/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: ObjectId._id(id) };
+      const query = { _id: ObjectId(id) };
       const services = await serviceCollection.findOne(query);
       res.send(services);
     });
-    app.post("/services", async (req, res) => {});
+
+    //Post a New service
+    app.post("/services", async (req, res) => {
+      const AddService = req.body;
+      console.log(AddService);
+      const service = await serviceCollection.insertOne(AddService);
+      res.send(service);
+    });
+
+    //Get all reviews
+    app.get("/reviews", async (req, res) => {
+      const query = {};
+      const cursor = reviewCollection.find(query);
+      const reviews = await cursor.toArray();
+      res.send(reviews);
+    });
+    //Get a single review
+    app.get("/reviews/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const reviews = await reviewCollection.findOne(query);
+      res.send(reviews);
+    });
+
+    //Post a New review
+    app.post("/reviews", async (req, res) => {
+      const AddReview = req.body;
+      console.log(AddReview);
+      const review = await reviewCollection.insertOne(AddReview);
+      res.send(review);
+    });
   } finally {
   }
 }
