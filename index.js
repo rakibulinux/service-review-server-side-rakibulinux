@@ -67,11 +67,20 @@ async function run() {
       res.send(service);
     });
 
-    //Get all reviews
+    //Get reviews by sort
     app.get("/reviews", async (req, res) => {
-      const query = {};
+      const service_id = req.query.service_id;
+      const reviewDate = req.query.reviewDate;
+      console.log(reviewDate, service_id);
+      let query = {};
+      if (service_id) {
+        query = {
+          service_id: service_id,
+        };
+      }
+      console.log(query);
       const cursor = reviewCollection.find(query);
-      const reviews = await cursor.toArray();
+      const reviews = await cursor.sort({ reviewDate: -1 }).toArray();
       res.send(reviews);
     });
     //Get a single review
