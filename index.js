@@ -84,6 +84,13 @@ async function run() {
       res.send(reviews);
     });
 
+    //Post a New review
+    app.post("/reviews", async (req, res) => {
+      const AddReview = req.body;
+      const review = await reviewCollection.insertOne(AddReview);
+      res.send(review);
+    });
+
     // Get all my reviews
     app.get("/myreviews", async (req, res) => {
       const email = req.query.email;
@@ -93,17 +100,23 @@ async function run() {
           email: email,
         };
       }
-      console.log(query);
       const cursor = reviewCollection.find(query);
       const reviews = await cursor.toArray();
       res.send(reviews);
     });
 
-    //Post a New review
-    app.post("/reviews", async (req, res) => {
-      const AddReview = req.body;
-      const review = await reviewCollection.insertOne(AddReview);
-      res.send(review);
+    //Update a single review
+    app.patch("/myreviews/:id", async (req, res) => {
+      const id = req.params.id;
+      const description = req.body.description;
+      const query = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          description: description,
+        },
+      };
+      const result = await reviewCollection.updateOne(query, updatedDoc);
+      res.send(result);
     });
 
     //Delete a single review
