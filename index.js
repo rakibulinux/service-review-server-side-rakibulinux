@@ -47,8 +47,9 @@ async function run() {
     //Get all services
     app.get("/services", async (req, res) => {
       const query = {};
+      const serviceAddedDate = req.query.serviceAddedDate;
       const cursor = serviceCollection.find(query);
-      const services = await cursor.toArray();
+      const services = await cursor.sort({ serviceAddedDate: -1 }).toArray();
       res.send(services);
     });
     //Get a single service
@@ -123,7 +124,7 @@ async function run() {
           description: description,
         },
       };
-      console.log(updatedDoc);
+      // console.log(updatedDoc);
       const result = await reviewCollection.updateOne(query, updatedDoc);
       console.log(
         `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`
