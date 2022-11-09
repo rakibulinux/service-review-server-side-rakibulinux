@@ -83,6 +83,8 @@ async function run() {
       const reviews = await cursor.sort({ reviewDate: -1 }).toArray();
       res.send(reviews);
     });
+
+    // Get all my reviews
     app.get("/myreviews", async (req, res) => {
       const email = req.query.email;
       let query = {};
@@ -96,19 +98,21 @@ async function run() {
       const reviews = await cursor.toArray();
       res.send(reviews);
     });
-    //Get a single review
-    app.get("/reviews/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: ObjectId(id) };
-      const reviews = await reviewCollection.findOne(query);
-      res.send(reviews);
-    });
 
     //Post a New review
     app.post("/reviews", async (req, res) => {
       const AddReview = req.body;
       const review = await reviewCollection.insertOne(AddReview);
       res.send(review);
+    });
+
+    //Delete a single review
+    app.delete("/myreviews/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: ObjectId(id) };
+      const deleteReview = await reviewCollection.deleteOne(query);
+      res.send(deleteReview);
     });
   } finally {
   }
