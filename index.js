@@ -104,18 +104,30 @@ async function run() {
       const reviews = await cursor.toArray();
       res.send(reviews);
     });
+    app.get("/myreviews/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const review = await reviewCollection.findOne(query);
+      res.send(review);
+    });
 
     //Update a single review
     app.patch("/myreviews/:id", async (req, res) => {
       const id = req.params.id;
+      console.log(id);
       const description = req.body.description;
+      console.log(description);
       const query = { _id: ObjectId(id) };
       const updatedDoc = {
         $set: {
           description: description,
         },
       };
+      console.log(updatedDoc);
       const result = await reviewCollection.updateOne(query, updatedDoc);
+      console.log(
+        `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`
+      );
       res.send(result);
     });
 
