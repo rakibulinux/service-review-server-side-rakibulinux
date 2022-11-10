@@ -18,7 +18,6 @@ app.use(express.json());
 
 function verifyJWT(req, res, next) {
   const authHeader = req.headers.authorization;
-  console.log(authHeader);
   if (!authHeader) {
     return res.status(401).send({ message: "unauthorized access" });
   }
@@ -46,7 +45,6 @@ async function run() {
     // JWT Post Method
     app.post("/jwt", (req, res) => {
       const user = req.body;
-      console.log(user.email);
       const token = jwt.sign(user, process.env.SECRET_KEY, {
         expiresIn: "1h",
       });
@@ -82,7 +80,6 @@ async function run() {
     //Post a New service
     app.post("/services", async (req, res) => {
       const AddService = req.body;
-      console.log(AddService);
       const service = await serviceCollection.insertOne(AddService);
       res.send(service);
     });
@@ -96,7 +93,6 @@ async function run() {
           service_id: service_id,
         };
       }
-      console.log(query);
       const cursor = reviewCollection.find(query);
       const reviews = await cursor.sort({ reviewDate: -1 }).toArray();
       res.send(reviews);
@@ -109,7 +105,7 @@ async function run() {
       res.send(review);
     });
 
-    // Get all my reviews
+    // Get all reviews for a specific user
     app.get("/myreviews", verifyJWT, async (req, res) => {
       const email = req.query.email;
       let query = {};
@@ -122,6 +118,8 @@ async function run() {
       const reviews = await cursor.toArray();
       res.send(reviews);
     });
+
+    //Get a single review
     app.get("/myreviews/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
@@ -132,27 +130,20 @@ async function run() {
     //Update a single review
     app.patch("/myreviews/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
-      const description = req.body.description;
-      console.log(description);
+      const description = req.body.description.description;
       const query = { _id: ObjectId(id) };
       const updatedDoc = {
         $set: {
           description: description,
         },
       };
-      // console.log(updatedDoc);
       const result = await reviewCollection.updateOne(query, updatedDoc);
-      console.log(
-        `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`
-      );
       res.send(result);
     });
 
     //Delete a single review
     app.delete("/myreviews/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
       const query = { _id: ObjectId(id) };
       const deleteReview = await reviewCollection.deleteOne(query);
       res.send(deleteReview);
