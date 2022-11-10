@@ -1,9 +1,9 @@
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
 const express = require("express");
 const app = express();
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const JwtAuth = require("./jwtAuth");
 
 // Mongo DB Connections
 const client = new MongoClient(process.env.MONGO_DB_URL, {
@@ -15,6 +15,23 @@ const client = new MongoClient(process.env.MONGO_DB_URL, {
 // Middleware Connections
 app.use(cors());
 app.use(express.json());
+
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  console.log(authHeader);
+  if (!authHeader) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.SECRET_KEY, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "Access denied" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
 
 // Main Route
 app.get("/", (req, res) => {
@@ -30,7 +47,7 @@ async function run() {
     app.post("/jwt", (req, res) => {
       const user = req.body;
       console.log(user.email);
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+      const token = jwt.sign(user, process.env.SECRET_KEY, {
         expiresIn: "1h",
       });
       res.send({ token });
@@ -40,14 +57,16 @@ async function run() {
     app.get("/service", async (req, res) => {
       const query = {};
       const cursor = serviceCollection.find(query);
-      const services = await cursor.limit(3).toArray();
+      const services = await cursor
+        .sort({ serviceAddedDate: -1 })
+        .limit(3)
+        .toArray();
       res.send(services);
     });
 
     //Get all services
     app.get("/services", async (req, res) => {
       const query = {};
-      const serviceAddedDate = req.query.serviceAddedDate;
       const cursor = serviceCollection.find(query);
       const services = await cursor.sort({ serviceAddedDate: -1 }).toArray();
       res.send(services);
@@ -71,8 +90,6 @@ async function run() {
     //Get reviews by sort
     app.get("/reviews", async (req, res) => {
       const service_id = req.query.service_id;
-      const reviewDate = req.query.reviewDate;
-      console.log(reviewDate, service_id);
       let query = {};
       if (service_id) {
         query = {
@@ -93,7 +110,7 @@ async function run() {
     });
 
     // Get all my reviews
-    app.get("/myreviews", async (req, res) => {
+    app.get("/myreviews", verifyJWT, async (req, res) => {
       const email = req.query.email;
       let query = {};
       if (email) {
