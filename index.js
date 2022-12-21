@@ -46,12 +46,12 @@ async function run() {
     app.post("/jwt", (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.SECRET_KEY, {
-        expiresIn: "1h",
+        expiresIn: "4h",
       });
       res.send({ token });
     });
 
-    // Limit to 3 services
+    // Limit to 3 services and sort services
     app.get("/service", async (req, res) => {
       const query = {};
       const cursor = serviceCollection.find(query);
@@ -69,6 +69,7 @@ async function run() {
       const services = await cursor.sort({ serviceAddedDate: -1 }).toArray();
       res.send(services);
     });
+
     //Get a single service
     app.get("/services/:id", async (req, res) => {
       const id = req.params.id;
